@@ -50,20 +50,6 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 
     struct rtpstat_t *rtpstat, *tmp;
 
-    /*
-    json_object *jobj = json_object_new_object();
-    json_object *jtimestamp = json_object_new_int(unixtime_begin);
-    json_object *jinterval = json_object_new_int(interval);
-    // json_object *jmemory = json_object_new_string(memory);
-    json_object *jtype = json_object_new_string("storage");
-    json_object_object_add(jobj,"timestamp", jtimestamp);
-    json_object_object_add(jobj,"interval", jinterval);
-    // json_object_object_add(jobj,"memory", jmemory);
-    json_object_object_add(jobj,"type", jtype);
-    printf ("%s\n",json_object_to_json_string(jobj));
-    */
-
-
     HASH_ITER(hh, memory, rtpstat, tmp) {
         streams += 1;
         packets += rtpstat->packets;
