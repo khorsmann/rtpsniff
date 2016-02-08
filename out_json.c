@@ -48,13 +48,29 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
     unsigned lost = 0;
     unsigned late = 0;
 
+    unsigned rtcpstreams = 0;
+    unsigned rtcppackets = 0;
+    unsigned rtcplost = 0;
+    unsigned rtcplate = 0;
+
     struct rtpstat_t *rtpstat, *tmp;
 
     HASH_ITER(hh, memory, rtpstat, tmp) {
+
+     if (rtpstat->src_port % 2 && rtpstat->dst_port % 2) { /* RTCP */
+
+        rtcpstreams += 1;
+        rtcppackets += rtpstat->packets;
+        rtcplost += rtpstat->misssize;
+        rtcplate += rtpstat->late;
+
+     } else { /* RTP */
+
         streams += 1;
         packets += rtpstat->packets;
         lost += rtpstat->misssize;
         late += rtpstat->late;
+
 
         /* Streams with significant amounts of packets */
         if (rtpstat->packets < 20)
@@ -90,6 +106,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
                 rtpstat->misssize,
                 rtpstat->late,
                 rtpstat->jumps);
+      }
     }
 
     if (packets) {
@@ -118,5 +135,33 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 
         printf ("%s\n",json_object_to_json_string(jobj));
     }
+
+    if (rtcppackets) {
+
+        json_object *jobj = json_object_new_object();
+
+        json_object *jtimestamp = json_object_new_int(unixtime_begin);
+        json_object *jinterval = json_object_new_int(interval);
+        json_object *jtype = json_object_new_string("rtcp_stat");
+        json_object *jstreams = json_object_new_int(rtcpstreams);
+        json_object *jpackets = json_object_new_int(rtcppackets);
+        json_object *jlost = json_object_new_int(rtcplost);
+        json_object *jlate = json_object_new_int(rtcplate);
+        json_object *jlostp = json_object_new_double(100.0 * rtcplost / rtcppackets);
+        json_object *jlatep = json_object_new_double(100.0 * rtcplate / rtcppackets);
+
+	json_object_object_add(jobj,"timestamp", jtimestamp);
+        json_object_object_add(jobj,"interval", jinterval);
+	json_object_object_add(jobj,"streams", jstreams);
+	json_object_object_add(jobj,"packets", jpackets);
+	json_object_object_add(jobj,"lost", jlost);
+	json_object_object_add(jobj,"late", jlate);
+	json_object_object_add(jobj,"lost_perc", jlostp);
+	json_object_object_add(jobj,"late_perc", jlatep);
+	json_object_object_add(jobj,"type", jtype);
+
+        printf ("%s\n",json_object_to_json_string(jobj));
+    }
+
     fflush(stdout);
 }
