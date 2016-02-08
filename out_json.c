@@ -88,24 +88,36 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         sprintf(dst_ip, "%hhu.%hhu.%hhu.%hhu",
                 rtpstat->dst_ip >> 24, (rtpstat->dst_ip >> 16) & 0xff,
                 (rtpstat->dst_ip >> 8) & 0xff, rtpstat->dst_ip & 0xff);
-        printf("RTP: %s:%hu > %s:%hu"
-                ", ssrc: %" PRIu32
-                ", packets: %" PRIu32
-                ", seq: %" PRIu16
-                ", missed: %" PRIu16
-                ", misssize: %" PRIu16
-                ", late: %" PRIu16
-                ", jump: %" PRIu16
-                "\n",
-                src_ip, rtpstat->src_port,
-                dst_ip, rtpstat->dst_port,
-                rtpstat->ssrc,
-                rtpstat->packets,
-                rtpstat->seq,
-                rtpstat->missed,
-                rtpstat->misssize,
-                rtpstat->late,
-                rtpstat->jumps);
+
+        json_object *jobj = json_object_new_object();
+        json_object *jtimestamp = json_object_new_int(unixtime_begin);
+        json_object *jtype 	= json_object_new_string("rtp_report");
+        json_object *jsrcip 	= json_object_new_string(src_ip);
+        json_object *jdstip 	= json_object_new_string(dst_ip);
+        json_object *jsrcp 	= json_object_new_int(rtpstat->src_port);
+        json_object *jdstp 	= json_object_new_int(rtpstat->dst_port);
+        json_object *jssrc 	= json_object_new_int(rtpstat->ssrc);
+        json_object *jpackets 	= json_object_new_int(rtpstat->packets);
+        json_object *jlate 	= json_object_new_int(rtpstat->late);
+        json_object *jmissed 	= json_object_new_int(rtpstat->missed);
+        json_object *jmisssize 	= json_object_new_int(rtpstat->misssize);
+        json_object *jjumps 	= json_object_new_int(rtpstat->jumps);
+
+	json_object_object_add(jobj,"timestamp", jtimestamp);
+        json_object_object_add(jobj,"ssrc", jssrc);
+        json_object_object_add(jobj,"src_ip", jsrcip);
+        json_object_object_add(jobj,"dst_ip", jdstip);
+        json_object_object_add(jobj,"src_port", jsrcp);
+        json_object_object_add(jobj,"dst_port", jdstp);
+	json_object_object_add(jobj,"packets", jpackets);
+	json_object_object_add(jobj,"lost", jmissed);
+	json_object_object_add(jobj,"lost_size", jmisssize);
+	json_object_object_add(jobj,"late", jlate);
+	json_object_object_add(jobj,"burst", jjumps);
+	json_object_object_add(jobj,"type", jtype);
+
+        printf ("%s\n",json_object_to_json_string(jobj));
+
       }
     }
 
