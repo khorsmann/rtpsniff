@@ -11,7 +11,7 @@ ifeq ($(LDFLAGS),)
     LDFLAGS = -Wall -L./bin
 endif
 ifeq ($(LDLIBS),)
-    LDLIBS = -lslowpoll -lpthread -lpcap
+    LDLIBS = -lslowpoll -lpthread -lpcap -ljson
 endif
 ifeq ($(PREFIX),)
     PREFIX = /usr/local
@@ -33,6 +33,7 @@ variables:
 	    echo 'Please select output module through MOD_OUT:' >&2; \
 	    echo '  make MOD_OUT=out_console  # for console output' >&2; \
 	    echo '  make MOD_OUT=out_syslog   # for syslog output' >&2; \
+	    echo '  make MOD_OUT=out_json     # for json output' >&2; \
 	    false; fi
 
 rtpsniff: variables
