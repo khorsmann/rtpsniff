@@ -203,7 +203,7 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
                 }
             }
 
-	   off = now - curmem->prev;
+	   off = now - old->prev;
            if (off >= 0) {
         	    if (off < old->min_diff_usec)
         	        old->min_diff_usec = off;
@@ -216,6 +216,7 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
 
             old->packets += 1;
             old->seq = seq;
+	    old->prev = now;
         }
 
         /* HASH_ADD may have mutated the pointer. */
