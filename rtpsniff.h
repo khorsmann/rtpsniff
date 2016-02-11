@@ -66,6 +66,11 @@ struct rtpstat_t {
     uint16_t late;          /* +1 for every out-of-order sequence */
     uint16_t jumps;         /* +1 for every large jump */
 
+    uint64_t min_diff_usec;
+    uint64_t max_diff_usec;
+    uint32_t out_of_order;
+    uint64_t prev;
+
     UT_hash_handle hh;
 };
 

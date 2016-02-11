@@ -118,6 +118,11 @@ void sniff_help() {
 
 static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
                         const u_char *packet) {
+    time_t sec = header->ts.tv_sec;
+    long int usec = header->ts.tv_usec;
+    uint64_t now = (uint32_t)sec * 1000000 + usec;
+    int64_t off;
+
     struct sniff_ether *ether = (struct sniff_ether*)packet;
     struct sniff_ip *ip;
     struct sniff_udp *udp;
@@ -178,6 +183,8 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
                 /* ignore: rtp->stamp */
                 rtpstat->seq = seq;
                 rtpstat->packets = 1;
+		rtpstat->min_diff_usec = (uint64_t)-1;
+		rtpstat->prev = now;
 
                 HASH_ADD(hh, curmem, HASH_FIRST, HASH_SIZE(*rtpstat), rtpstat);
             }
@@ -195,6 +202,18 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
                     old->late += 1;
                 }
             }
+
+	   off = now - curmem->prev;
+           if (off >= 0) {
+        	    if (off < old->min_diff_usec)
+        	        old->min_diff_usec = off;
+        	    if (off > old->max_diff_usec)
+        	        old->max_diff_usec = off;
+            } else {
+        	    /* Got packets out of order! Ignoring timestamp! */
+        	    old->out_of_order += 1;
+            }
+
             old->packets += 1;
             old->seq = seq;
         }

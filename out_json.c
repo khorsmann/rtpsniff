@@ -47,6 +47,9 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
     unsigned packets = 0;
     unsigned lost = 0;
     unsigned late = 0;
+    unsigned ooo = 0;
+    unsigned dmin = 0;
+    unsigned dmax = 0;
 
     unsigned rtcpstreams = 0;
     unsigned rtcppackets = 0;
@@ -71,6 +74,10 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         lost += rtpstat->misssize;
         late += rtpstat->late;
 
+	ooo += rtpstat->out_of_order;
+	dmin += rtpstat->min_diff_usec;
+	dmax += rtpstat->max_diff_usec;
+		if (dmin > dmax) dmin = 0;
 
         /* Streams with significant amounts of packets */
         if (rtpstat->packets < 20)
@@ -103,6 +110,10 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         json_object *jmisssize 	= json_object_new_int(rtpstat->misssize);
         json_object *jjumps 	= json_object_new_int(rtpstat->jumps);
 
+        json_object *jooo 	= json_object_new_int(rtpstat->out_of_order);
+        json_object *jdmin 	= json_object_new_int64(rtpstat->min_diff_usec);
+        json_object *jdmax 	= json_object_new_int64(rtpstat->max_diff_usec);
+
 	json_object_object_add(jobj,"timestamp", jtimestamp);
         json_object_object_add(jobj,"ssrc", jssrc);
         json_object_object_add(jobj,"src_ip", jsrcip);
@@ -114,6 +125,11 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"lost_size", jmisssize);
 	json_object_object_add(jobj,"late", jlate);
 	json_object_object_add(jobj,"burst", jjumps);
+
+	json_object_object_add(jobj,"out-of-seq", jooo);
+	json_object_object_add(jobj,"delay_min", jdmin);
+	json_object_object_add(jobj,"delay_max", jdmax);
+
 	json_object_object_add(jobj,"type", jtype);
 
         printf ("%s\n",json_object_to_json_string(jobj));
@@ -135,6 +151,10 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         json_object *jlostp = json_object_new_double(100.0 * lost / packets);
         json_object *jlatep = json_object_new_double(100.0 * late / packets);
 
+        json_object *jooo 	= json_object_new_int(ooo);
+        json_object *jdmin 	= json_object_new_int64(dmin);
+        json_object *jdmax 	= json_object_new_int64(dmax);
+
 	json_object_object_add(jobj,"timestamp", jtimestamp);
         json_object_object_add(jobj,"interval", jinterval);
 	json_object_object_add(jobj,"streams", jstreams);
@@ -143,6 +163,11 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"late", jlate);
 	json_object_object_add(jobj,"lost_perc", jlostp);
 	json_object_object_add(jobj,"late_perc", jlatep);
+
+	json_object_object_add(jobj,"out-of-seq", jooo);
+	json_object_object_add(jobj,"delay_min", jdmin);
+	json_object_object_add(jobj,"delay_max", jdmax);
+
 	json_object_object_add(jobj,"type", jtype);
 
         printf ("%s\n",json_object_to_json_string(jobj));
