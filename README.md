@@ -6,6 +6,26 @@ RTPSniff is a tool to sniff RTP traffic and show stats about it.
 (I'm considering renaming `rtpsniff` to `rtpstat` -- like `vmstat` --
 since it prints a status update every N seconds.)
 
+### Build
+```
+  make MOD_OUT=out_console  # for console output
+  make MOD_OUT=out_syslog   # for syslog output
+  make MOD_OUT=out_json     # for json output
+
+```
+
+### USAGE
+##### Syntax:
+```
+  rtpsniff {interface} {buffer_size} '{bpf_filter}'
+```
+
+##### Example: 
+```
+  rtpsniff eth0 100 'udp and portrange 10000-30000'
+```
+
+
 
 TODO
 ----
