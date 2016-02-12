@@ -126,7 +126,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"late", jlate);
 	json_object_object_add(jobj,"burst", jjumps);
 
-	json_object_object_add(jobj,"out-of-seq", jooo);
+	json_object_object_add(jobj,"out_of_seq", jooo);
 	json_object_object_add(jobj,"delay_min", jdmin);
 	json_object_object_add(jobj,"delay_max", jdmax);
 
@@ -164,7 +164,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"lost_perc", jlostp);
 	json_object_object_add(jobj,"late_perc", jlatep);
 
-	json_object_object_add(jobj,"out-of-seq", jooo);
+	json_object_object_add(jobj,"out_of_seq", jooo);
 	json_object_object_add(jobj,"delay_min", jdmin);
 	json_object_object_add(jobj,"delay_max", jdmax);
 
