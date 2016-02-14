@@ -10,7 +10,7 @@ since it prints a status update every N seconds.)
 ```
   make MOD_OUT=out_console  # for console output
   make MOD_OUT=out_syslog   # for syslog output
-  make MOD_OUT=out_json     # for json output
+  make MOD_OUT=out_json     # for json output (libjson0, libjson0-dev)
 
 ```
 
