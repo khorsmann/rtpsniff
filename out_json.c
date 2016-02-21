@@ -78,13 +78,14 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         late += rtpstat->late;
 
 	ooo += rtpstat->out_of_order;
-	jitter += rtpstat->jitter / streams;
 	dmin += rtpstat->min_diff_usec / streams;
 	dmax += rtpstat->max_diff_usec / streams;
 		if (dmin > dmax) dmin = 0;
 	davg = (dmax + dmin) / 2;
 
-        /* Streams with significant amounts of packets */
+	jitter += rtpstat->jitter / streams;
+
+        /* Reports individual Streams with significant issues */
         if (rtpstat->packets < 20)
             continue;
         /* Streams with issues */
