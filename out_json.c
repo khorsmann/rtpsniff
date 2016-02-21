@@ -75,11 +75,11 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         late += rtpstat->late;
 
 	ooo += rtpstat->out_of_order;
-	dmin += rtpstat->min_diff_usec;
-	dmax += rtpstat->max_diff_usec;
+	dmin += rtpstat->min_diff_usec / streams;
+	dmax += rtpstat->max_diff_usec / streams;
 		if (dmin > dmax) dmin = 0;
 
-        /* Streams with significant amounts of packets */
+        /* Reports individual Streams with significant issues */
         if (rtpstat->packets < 20)
             continue;
         /* Streams with issues */
