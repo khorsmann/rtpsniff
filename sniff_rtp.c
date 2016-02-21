@@ -93,11 +93,25 @@ struct sniff_rtp {
     uint16_t seq;
     uint32_t stamp;
     uint32_t ssrc;
+    u_int32_t csrc;
     /* ... */
 };
 
+struct sniff_rtcp_rr {
+  uint32_t ssrc;                 /* data source being reported */
+  uint16_t fraction;      /* fraction lost since last SR/RR */
+  uint16_t lost;                  /* cumul. no. pkts lost (signed!) */
+  uint32_t last_seq;             /* extended last seq. no. received */
+  uint32_t jitter;               /* interarrival jitter */
+  uint32_t lsr;                  /* last SR packet from this source */
+  uint32_t dlsr;                 /* delay since last SR packet */
+};
+
+
 #define PT_ULAW 0
+#define PT_G723	4
 #define PT_ALAW 8
+#define PT_G729	18
 
 static struct memory_t *sniff__memory;
 static pcap_t *sniff__handle;
@@ -122,6 +136,7 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
     long int usec = header->ts.tv_usec;
     uint64_t now = (uint32_t)sec * 1000000 + usec;
     int64_t off;
+    uint16_t report_type = 0;
 
     struct sniff_ether *ether = (struct sniff_ether*)packet;
     struct sniff_ip *ip;
@@ -147,6 +162,14 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
     sport = htons(udp->sport);
     dport = htons(udp->dport);
     rtp = (struct sniff_rtp*)(udp + 1);
+
+    u_char *rtcp;
+    rtcp = (u_char *)rtp;
+    if (rtcp[0] == 0x80 || rtcp[0] == 0x81)
+		if (rtcp[1] == 0xc8 || rtcp[1] == 0xc9) {
+			// printf("RTCP Packet detected!\n");
+			report_type = 1;
+		}
 
     if (ntohs(udp->len) < sizeof(struct sniff_rtp)) {
         return;
@@ -185,10 +208,22 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
                 rtpstat->packets = 1;
 		rtpstat->min_diff_usec = (uint64_t)-1;
 		rtpstat->prev = now;
+		rtpstat->timestamp = 0;
+		rtpstat->jitter = 0;
+
+		// Report Type
+		rtpstat->report_type = report_type;
+
+		// Payload
+		rtpstat->enc = rtp->pt;
 
                 HASH_ADD(hh, curmem, HASH_FIRST, HASH_SIZE(*rtpstat), rtpstat);
             }
         } else {
+
+          if (old->report_type == 0) {
+	  // RTP Packet
+
             if (old->seq + 1 == seq) {
                 /* Excellent! */
             } else {
@@ -214,9 +249,20 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
         	    old->out_of_order += 1;
             }
 
+	    off = (rtp->stamp - old->timestamp) / 8000 / 100;
+		// fprintf(stderr,"rtp off: %d \n",off);
+	    // old->jitter = (( 15 * old->jitter ) + off) / 16;
+	    old->jitter = (( 15 * old->jitter) + off) / 16;
+
             old->packets += 1;
             old->seq = seq;
 	    old->prev = now;
+
+          } else {
+	  // RTCP Packet
+
+          }
+
         }
 
         /* HASH_ADD may have mutated the pointer. */

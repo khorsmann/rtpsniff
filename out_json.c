@@ -50,6 +50,8 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
     unsigned ooo = 0;
     unsigned dmin = 0;
     unsigned dmax = 0;
+    unsigned davg = 0;
+    unsigned jitter = 0;
 
     unsigned rtcpstreams = 0;
     unsigned rtcppackets = 0;
@@ -60,7 +62,8 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 
     HASH_ITER(hh, memory, rtpstat, tmp) {
 
-     if (rtpstat->src_port % 2 && rtpstat->dst_port % 2) { /* RTCP */
+     if (rtpstat->report_type == 1 ) { /* RTCP */
+     // if (rtpstat->report_type == 1 || ( rtpstat->src_port % 2 && rtpstat->dst_port % 2) ) { /* RTCP */
 
         rtcpstreams += 1;
         rtcppackets += rtpstat->packets;
@@ -75,9 +78,11 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         late += rtpstat->late;
 
 	ooo += rtpstat->out_of_order;
-	dmin += rtpstat->min_diff_usec;
-	dmax += rtpstat->max_diff_usec;
+	jitter += rtpstat->jitter / streams;
+	dmin += rtpstat->min_diff_usec / streams;
+	dmax += rtpstat->max_diff_usec / streams;
 		if (dmin > dmax) dmin = 0;
+	davg = (dmax + dmin) / 2;
 
         /* Streams with significant amounts of packets */
         if (rtpstat->packets < 20)
@@ -130,6 +135,9 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"delay_min", jdmin);
 	json_object_object_add(jobj,"delay_max", jdmax);
 
+        // json_object *jjitter 	= json_object_new_int64(rtpstat->jitter);
+	// json_object_object_add(jobj,"jitter", jjitter);
+
 	json_object_object_add(jobj,"type", jtype);
 
         printf ("%s\n",json_object_to_json_string(jobj));
@@ -154,6 +162,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         json_object *jooo 	= json_object_new_int(ooo);
         json_object *jdmin 	= json_object_new_int64(dmin);
         json_object *jdmax 	= json_object_new_int64(dmax);
+        json_object *jdavg 	= json_object_new_int64(davg);
 
 	json_object_object_add(jobj,"timestamp", jtimestamp);
         json_object_object_add(jobj,"interval", jinterval);
@@ -167,6 +176,10 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"out_of_seq", jooo);
 	json_object_object_add(jobj,"delay_min", jdmin);
 	json_object_object_add(jobj,"delay_max", jdmax);
+	json_object_object_add(jobj,"delay_avg", jdavg);
+
+        // json_object *jjitter 	= json_object_new_int64(jitter);
+	// json_object_object_add(jobj,"jitter", jjitter);
 
 	json_object_object_add(jobj,"type", jtype);
 

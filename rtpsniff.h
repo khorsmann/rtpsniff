@@ -59,7 +59,7 @@ struct rtpstat_t {
 
     /* Contents */
     uint32_t packets;
-    /*uint32_t timestamp? */
+    uint32_t timestamp;
     uint16_t seq;
     uint16_t missed;        /* +1 for every missed increment */
     uint16_t misssize;      /* +N for every missed N increments */
@@ -70,6 +70,10 @@ struct rtpstat_t {
     uint64_t max_diff_usec;
     uint32_t out_of_order;
     uint64_t prev;
+    uint64_t jitter;
+
+    uint16_t report_type;	/* 0 = RTP, 1 = RTCP */
+    uint16_t enc;		/* Payload */
 
     UT_hash_handle hh;
 };
