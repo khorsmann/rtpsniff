@@ -97,21 +97,48 @@ struct sniff_rtp {
     /* ... */
 };
 
-struct sniff_rtcp_rr {
-  uint32_t ssrc;                 /* data source being reported */
-  uint16_t fraction;      /* fraction lost since last SR/RR */
-  uint16_t lost;                  /* cumul. no. pkts lost (signed!) */
-  uint32_t last_seq;             /* extended last seq. no. received */
-  uint32_t jitter;               /* interarrival jitter */
-  uint32_t lsr;                  /* last SR packet from this source */
-  uint32_t dlsr;                 /* delay since last SR packet */
-};
 
-
+/* Payloads */
 #define PT_ULAW 0
 #define PT_G723	4
 #define PT_ALAW 8
 #define PT_G729	18
+#define PT_GSM  3
+#define PT_G722 9
+#define PT_L16_STEREO 10
+#define PT_L16_MONO 11
+#define PT_QCELP 12
+
+typedef struct _kv {
+  u_int32_t  key;
+  u_int32_t  value;
+} kv;
+
+/* Clockrates */
+static const kv clockrate[] = {
+  {0, 8000},
+  {4, 8000},
+  {8, 8000},
+  {18, 8000},
+  {3, 8000},
+  {9, 8000},
+  {10, 44100},
+  {11, 44100},
+  {12, 8000}
+};
+
+#define CLOCK_SIZE  (sizeof clockrate / sizeof clockrate[0])
+
+static u_int32_t get_clockrate(u_int32_t key)
+{
+  size_t i;
+  for (i = 0; i < CLOCK_SIZE; i++) {
+    if (clockrate[i].key == key)
+      return clockrate[i].value;
+  }
+  return 1;
+}
+
 
 static struct memory_t *sniff__memory;
 static pcap_t *sniff__handle;
@@ -129,6 +156,82 @@ void sniff_help() {
         "\n"
     );
 }
+
+
+/* RTCP Stuff */
+
+typedef struct _rtcp_header
+{
+#if BYTE_ORDER == BIG_ENDIAN
+	uint16_t version:2;
+	uint16_t padding:1;
+	uint16_t rc:5;
+	uint16_t type:8;
+#elif BYTE_ORDER == LITTLE_ENDIAN
+	uint16_t rc:5;
+	uint16_t padding:1;
+	uint16_t version:2;
+	uint16_t type:8;
+#endif
+	uint16_t length:16;
+} rtcp_header_t;
+
+#define rtcp_header_get_length(ch)       ntohs((ch)->length)
+
+typedef struct _sender_info
+{
+	uint32_t ntp_timestamp_msw;
+	uint32_t ntp_timestamp_lsw;
+	uint32_t rtp_timestamp;
+	uint32_t senders_packet_count;
+	uint32_t senders_octet_count;
+} sender_info_t;
+
+#define sender_info_get_ntp_timestamp_msw(si) ((si)->ntp_timestamp_msw)
+#define sender_info_get_ntp_timestamp_lsw(si) ((si)->ntp_timestamp_lsw)
+#define sender_info_get_rtp_timestamp(si) ((si)->rtp_timestamp)
+#define sender_info_get_packet_count(si) ntohl((si)->senders_packet_count)
+#define sender_info_get_octet_count(si) ntohl((si)->senders_octet_count)
+
+/*! \brief RTCP Report Block (http://tools.ietf.org/html/rfc3550#section-6.4.1) */
+typedef struct _report_block
+{
+
+	uint32_t ssrc;
+	uint8_t fl_cnpl;
+	uint8_t lost[3];
+	uint32_t ext_high_seq_num_rec;
+	uint32_t interarrival_jitter;
+	uint32_t lsr;
+	uint32_t delay_snc_last_sr;
+} report_block_t;
+
+#define report_block_get_ssrc(rb) ntohl((rb)->ssrc)
+#define report_block_get_fraction_lost(rb) ntohl((rb)->fl_cnpl)
+#define report_block_get_cum_packet_loss(rb) ntohl((rb)->lost[0])
+#define report_block_get_high_ext_seq(rb) ntohl(((report_block_t*)(rb))->ext_high_seq_num_rec)
+#define report_block_get_interarrival_jitter(rb) ntohl(((report_block_t*)(rb))->interarrival_jitter)
+#define report_block_get_last_SR_time(rb) ntohl(((report_block_t*)(rb))->lsr)
+#define report_block_get_last_SR_delay(rb) ntohl(((report_block_t*)(rb))->delay_snc_last_sr)
+typedef struct _rtcp_rr
+{
+	rtcp_header_t header;
+	uint32_t ssrc;
+	report_block_t rb[1];
+} rtcp_rr_t;
+
+typedef struct _rtcp_sr
+{
+	rtcp_header_t header;
+	uint32_t ssrc;
+	sender_info_t si;
+	report_block_t rb[1];
+} rtcp_sr_t;
+
+
+/* ... */
+
+/* Main */
 
 static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
                         const u_char *packet) {
@@ -163,13 +266,19 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
     dport = htons(udp->dport);
     rtp = (struct sniff_rtp*)(udp + 1);
 
+    /*
     u_char *rtcp;
     rtcp = (u_char *)rtp;
-    if (rtcp[0] == 0x80 || rtcp[0] == 0x81)
+    if (rtcp[0] == 0x80 || rtcp[0] == 0x81) {
 		if (rtcp[1] == 0xc8 || rtcp[1] == 0xc9) {
 			// printf("RTCP Packet detected!\n");
 			report_type = 1;
 		}
+    }
+    */
+
+    if ( (rtp->pt >= 72 && rtp->pt <= 76) && (sport % 2 && dport % 2) ) report_type = 1; // RTCP
+    if (rtp->pt >= 101 && rtp->pt <= 102) report_type = 2; //  DTMF
 
     if (ntohs(udp->len) < sizeof(struct sniff_rtp)) {
         return;
@@ -192,6 +301,7 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
             /* the rest: zero */
         };
         struct rtpstat_t *old;
+
 
 #if 0
         fprintf(stderr, "len: %hhu, %hhu, %hhu, %hhu, %hhu, %hhu\n",
@@ -216,6 +326,12 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
 
 		// Payload
 		rtpstat->enc = rtp->pt;
+		rtpstat->clockrate = get_clockrate(rtp->pt);
+
+	        // fprintf(stderr, "NEW LEG: codec=%hhu, clockrate=%d\n", rtpstat->enc, rtpstat->clockrate);
+
+
+	        // fprintf(stderr, "NEW LEG: %hhu, %hhu\n", rtpstat->report_type, rtp->pt);
 
                 HASH_ADD(hh, curmem, HASH_FIRST, HASH_SIZE(*rtpstat), rtpstat);
             }
@@ -249,17 +365,78 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
         	    old->out_of_order += 1;
             }
 
-	    off = (rtp->stamp - old->timestamp) / 8000 / 100;
-		// fprintf(stderr,"rtp off: %d \n",off);
-	    // old->jitter = (( 15 * old->jitter ) + off) / 16;
+	    // off = (rtp->stamp - old->timestamp) / clockrate / 100;
+	    // old->jitter = (( 15 * old->jitter) + off) / 16;
+
+	    off = (rtp->stamp - old->timestamp) / old->clockrate / 100;
 	    old->jitter = (( 15 * old->jitter) + off) / 16;
 
             old->packets += 1;
             old->seq = seq;
 	    old->prev = now;
 
-          } else {
+          } else if (old->report_type == 1) {
 	  // RTCP Packet
+
+		// printf("Processing RTCP... \n");
+		rtcp_header_t *rtcp = (rtcp_header_t *)rtp;
+
+		if(rtcp->version != 2)
+		{
+			// printf("wrong RTCP version! \n");
+			return;
+		} else {
+			// printf("valid RTCP! \n");
+			if (rtcp->type == 201) {
+				rtcp_rr_t *rr = (rtcp_rr_t*)rtcp;
+				if(rr->header.rc > 0) {
+					fprintf(stderr, "RTCP type: %hhu, ssrc: %hhu, seq: %d, lost: %d, jitter: %d, tot_lost: %d, lasr_sr: %d, sr_delay: %d \n",
+						//	ntohl(rr->ssrc), 
+							rtcp->type,
+							report_block_get_ssrc(&rr->rb[0]),
+							report_block_get_high_ext_seq(&rr->rb[0]),
+							report_block_get_fraction_lost(&rr->rb[0]),
+							report_block_get_interarrival_jitter(&rr->rb[0]),
+							report_block_get_cum_packet_loss(&rr->rb[0]),
+							report_block_get_last_SR_time(&rr->rb[0]),
+							report_block_get_last_SR_delay(&rr->rb[0])
+					);
+			            old->packets += 1;
+				    old->missed = report_block_get_cum_packet_loss(&rr->rb[0]) - old->missed;
+				    old->jitter = (15 * old->jitter + report_block_get_interarrival_jitter(&rr->rb[0]))/16;
+				    old->prev = report_block_get_last_SR_time(&rr->rb[0]);
+				}
+			} else if (rtcp->type == 200) {
+				rtcp_sr_t *sr = (rtcp_sr_t*)rtcp;
+					fprintf(stderr, "RTCP ntp_ts_msw: %hhu, ntp_ts_lsw: %hhu, octets: %hhu, rtp_ts: %hhu, packets: %hhu \n",
+							sender_info_get_ntp_timestamp_msw(&sr->si),
+							sender_info_get_ntp_timestamp_lsw(&sr->si),
+							sender_info_get_octet_count(&sr->si),
+							sender_info_get_rtp_timestamp(&sr->si),
+							sender_info_get_packet_count(&sr->si));
+
+				if(sr->header.rc > 0) {
+					fprintf(stderr, "RTCP RC type: %hhu, ssrc: %hhu, seq: %hhu, lost: %hhu, jitter: %hhu, tot_lost: %hhu, lasr_sr: %hhu, sr_delay: %hhu \n",
+							// ntohl(sr->ssrc), 
+							rtcp->type,
+							report_block_get_ssrc(&sr->rb[0]),
+							report_block_get_high_ext_seq(&sr->rb[0]),
+							report_block_get_fraction_lost(&sr->rb[0]),
+							report_block_get_interarrival_jitter(&sr->rb[0]),
+							report_block_get_cum_packet_loss(&sr->rb[0]),
+							report_block_get_last_SR_time(&sr->rb[0]),
+							report_block_get_last_SR_delay(&sr->rb[0])
+					);
+
+			         //   old->packets += 1;
+				 //   old->missed = report_block_get_cum_packet_loss(&sr->rb[0]) - old->missed;
+				 //   old->jitter = (15 * old->jitter + report_block_get_interarrival_jitter(&sr->rb[0]))/16;
+				 //   old->prev = report_block_get_last_SR_time(&sr->rb[0]);
+				}
+
+			}
+		}
+
 
           }
 

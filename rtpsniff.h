@@ -60,6 +60,7 @@ struct rtpstat_t {
     /* Contents */
     uint32_t packets;
     uint32_t timestamp;
+    uint32_t clockrate;
     uint16_t seq;
     uint16_t missed;        /* +1 for every missed increment */
     uint16_t misssize;      /* +N for every missed N increments */
