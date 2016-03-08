@@ -53,6 +53,10 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
     unsigned davg = 0;
     unsigned jitter = 0;
 
+    unsigned latency = 0;
+    unsigned mos = 0;
+    unsigned r_factor = 0;
+
     unsigned rtcpstreams = 0;
     unsigned rtcppackets = 0;
     unsigned rtcplost = 0;
@@ -84,6 +88,27 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	davg = (dmax + dmin) / 2;
 
 	jitter += rtpstat->jitter / streams;
+
+	/* MOS */
+
+	latency = (davg + (jitter * 2) + 10)/1000;
+
+  	if(latency < 160) {
+  	  r_factor = 93.2 - (latency / 40);
+  	} else {
+  	  r_factor = 93.2 - (latency - 120) / 10;
+  	}
+  	r_factor = r_factor - ((100*lost/packets) * 2.5);
+
+  	mos = 1 + (0.035) * (r_factor) +
+  	  (0.000007) * (r_factor) * ((r_factor) - 60)
+  	  * (100 - (r_factor));
+
+	if (mos < 0) mos = 0;
+	if (mos > 5) mos = 5;
+
+	// fprintf(stderr, "NEW MOS: %.2f \n", (double)mos);
+
 
         /* Reports individual Streams with significant issues */
         if (rtpstat->packets < 20)
@@ -139,6 +164,9 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
          json_object *jjitter 	= json_object_new_int64(rtpstat->jitter);
 	 json_object_object_add(jobj,"jitter", jjitter);
 
+         json_object *jmos 	= json_object_new_double(mos);
+	 json_object_object_add(jobj,"p-mos", jmos);
+
 	json_object_object_add(jobj,"type", jtype);
 
         printf ("%s\n",json_object_to_json_string(jobj));
@@ -181,6 +209,9 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 
          json_object *jjitter 	= json_object_new_int64(jitter);
 	 json_object_object_add(jobj,"jitter", jjitter);
+
+         json_object *jmos 	= json_object_new_double(mos);
+	 json_object_object_add(jobj,"p-mos", jmos);
 
 	json_object_object_add(jobj,"type", jtype);
 
