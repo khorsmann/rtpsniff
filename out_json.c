@@ -53,9 +53,9 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
     unsigned davg = 0;
     unsigned jitter = 0;
 
-    unsigned latency = 0;
-    unsigned mos = 0;
-    unsigned r_factor = 0;
+    double latency = 0;
+    double mos = 0;
+    double r_factor = 0;
 
     unsigned rtcpstreams = 0;
     unsigned rtcppackets = 0;
@@ -91,14 +91,14 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 
 	/* MOS */
 
-	latency = (davg + (jitter * 2) + 10)/1000;
+	latency = (davg + (jitter * 2) + 10) / 1000;
 
   	if(latency < 160) {
   	  r_factor = 93.2 - (latency / 40);
   	} else {
   	  r_factor = 93.2 - (latency - 120) / 10;
   	}
-  	r_factor = r_factor - ((100*lost/packets) * 2.5);
+  	r_factor = r_factor - (lost * 2.5);
 
   	mos = 1 + (0.035) * (r_factor) +
   	  (0.000007) * (r_factor) * ((r_factor) - 60)
