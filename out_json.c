@@ -165,7 +165,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	 json_object_object_add(jobj,"jitter", jjitter);
 
          json_object *jmos 	= json_object_new_double(mos);
-	 json_object_object_add(jobj,"p-mos", jmos);
+	 json_object_object_add(jobj,"mos", jmos);
 
 	json_object_object_add(jobj,"type", jtype);
 
@@ -211,7 +211,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	 json_object_object_add(jobj,"jitter", jjitter);
 
          json_object *jmos 	= json_object_new_double(mos);
-	 json_object_object_add(jobj,"p-mos", jmos);
+	 json_object_object_add(jobj,"mos", jmos);
 
 	json_object_object_add(jobj,"type", jtype);
 
