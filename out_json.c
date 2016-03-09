@@ -164,7 +164,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
          json_object *jjitter 	= json_object_new_int64(rtpstat->jitter);
 	 json_object_object_add(jobj,"jitter", jjitter);
 
-         json_object *jmos 	= json_object_new_double(mos);
+         json_object *jmos 	= json_object_new_int(mos*100);
 	 json_object_object_add(jobj,"mos", jmos);
 
 	json_object_object_add(jobj,"type", jtype);
@@ -185,8 +185,8 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         json_object *jpackets = json_object_new_int(packets);
         json_object *jlost = json_object_new_int(lost);
         json_object *jlate = json_object_new_int(late);
-        json_object *jlostp = json_object_new_double(100.0 * lost / packets);
-        json_object *jlatep = json_object_new_double(100.0 * late / packets);
+        json_object *jlostp = json_object_new_int((100.0 * lost / packets)*100);
+        json_object *jlatep = json_object_new_int((100.0 * late / packets)*100);
 
         json_object *jooo 	= json_object_new_int(ooo);
         json_object *jdmin 	= json_object_new_int64(dmin);
@@ -210,7 +210,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
          json_object *jjitter 	= json_object_new_int64(jitter);
 	 json_object_object_add(jobj,"jitter", jjitter);
 
-         json_object *jmos 	= json_object_new_double(mos);
+         json_object *jmos 	= json_object_new_int(mos*100);
 	 json_object_object_add(jobj,"mos", jmos);
 
 	json_object_object_add(jobj,"type", jtype);
@@ -229,8 +229,8 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         json_object *jpackets = json_object_new_int(rtcppackets);
         json_object *jlost = json_object_new_int(rtcplost);
         json_object *jlate = json_object_new_int(rtcplate);
-        json_object *jlostp = json_object_new_double(100.0 * rtcplost / rtcppackets);
-        json_object *jlatep = json_object_new_double(100.0 * rtcplate / rtcppackets);
+        json_object *jlostp = json_object_new_int((100.0 * rtcplost / rtcppackets)*100);
+        json_object *jlatep = json_object_new_int((100.0 * rtcplate / rtcppackets)*100);
 
 	json_object_object_add(jobj,"timestamp", jtimestamp);
         json_object_object_add(jobj,"interval", jinterval);
