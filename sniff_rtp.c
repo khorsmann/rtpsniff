@@ -328,11 +328,6 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
 		rtpstat->enc = rtp->pt;
 		rtpstat->clockrate = get_clockrate(rtp->pt);
 
-	        // fprintf(stderr, "NEW LEG: codec=%hhu, clockrate=%d\n", rtpstat->enc, rtpstat->clockrate);
-
-
-	        // fprintf(stderr, "NEW LEG: %hhu, %hhu\n", rtpstat->report_type, rtp->pt);
-
                 HASH_ADD(hh, curmem, HASH_FIRST, HASH_SIZE(*rtpstat), rtpstat);
             }
         } else {

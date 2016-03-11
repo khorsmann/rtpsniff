@@ -107,9 +107,6 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	if (mos < 0) mos = 0;
 	if (mos > 5) mos = 5;
 
-	// fprintf(stderr, "NEW MOS: %.2f \n", (double)mos);
-
-
         /* Reports individual Streams with significant issues */
         if (rtpstat->packets < 20)
             continue;
