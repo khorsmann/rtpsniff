@@ -339,6 +339,7 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
 
           if (old->report_type == 0) {
 	  // RTP Packet
+	  int skip = 0;
 
             if (old->seq + 1 == seq) {
                 /* Excellent! */
@@ -349,24 +350,24 @@ static void sniff_got_packet(u_char *args, const struct pcap_pkthdr *header,
                 } else if (diff > 0) {
                     old->missed += 1;
                     old->misssize += (diff - 1);
+		    skip = 1;
                 } else {
                     old->late += 1;
                 }
             }
 
-	   off = now - old->prev;
-           if (off >= 0) {
-        	    if (off < old->min_diff_usec)
-        	        old->min_diff_usec = off;
-        	    if (off > old->max_diff_usec)
-        	        old->max_diff_usec = off;
-            } else {
-        	    /* Got packets out of order! Ignoring timestamp! */
-        	    old->out_of_order += 1;
-            }
-
-	    // off = (rtp->stamp - old->timestamp) / clockrate / 100;
-	    // old->jitter = (( 15 * old->jitter) + off) / 16;
+	    if (skip == 0) {
+		   off = now - old->prev;
+	           if (off >= 0) {
+	        	    if (off < old->min_diff_usec)
+	        	        old->min_diff_usec = off;
+	        	    if (off > old->max_diff_usec)
+	        	        old->max_diff_usec = off;
+	            } else {
+	        	    /* Got packets out of order! Ignoring timestamp! */
+	        	    old->out_of_order += 1;
+	            }
+	    }
 
 	    off = (rtp->stamp - old->timestamp) / old->clockrate / 100;
 	    old->jitter = (( 15 * old->jitter) + off) / 16;
