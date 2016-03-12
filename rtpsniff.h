@@ -137,6 +137,7 @@ void timer_help();
 int timer_loop_bg(struct memory_t *memory);
 void timer_loop_stop();
 
+extern int timer_interval;
 
 /*----------------------------------------------------------------------------*
  | Utility functions that are not module specific.                            |

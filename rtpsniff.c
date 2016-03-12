@@ -23,6 +23,8 @@ with RTPSniff.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <unistd.h>
 
+int timer_interval = 10;
+
 static void exit_error(const char* errbuf) {
     fprintf(stderr, "RTPSniff: Initialization failed or bad command line "
                     "options. See -h for help:\n%s\n", errbuf);
@@ -74,9 +76,17 @@ int main(int argc, char const *const *argv) {
         buffer = atoi(argv[++i]);
 
       }
+      else if (strcmp(argv[i], "-t") == 0 || 
+               strcmp(argv[i], "--timer") == 0) {
+        if (i+1 == argc) {
+          exit_error("Missing timer size");
+        }
+        timer_interval = atoi(argv[++i]);
+
+      }
       else if (strcmp(argv[i], "-v") == 0 ||
                strcmp(argv[i], "--verbose") == 0) {
-         fprintf(stderr, "RTPSniff: Initialization [device: %s] [bpf: '%s'] [ring buffer: %dk pps (%dkb)] \n", dev, bpf, buffer, buffer/1024);
+         fprintf(stderr, "RTPSniff: Initialization [device: %s] [bpf: '%s'] [ring buffer: %dk pps] [interval: %ds] \n", dev, bpf, buffer, timer_interval);
 
       }
       else if (strcmp(argv[i], "-h") == 0 ||
@@ -151,6 +161,7 @@ void rtpsniff_help() {
         "  -f   PCAP_FILTER is the common BPF filter.\n"
         "  -b   MAX_KPPS is the amount of Kpackets per second you expect. if you\n"
         "       go too low, the buffers won't be sufficient.\n"
+        "  -t   TIMER output interval in seconds.\n"
         "  -v   VERBOSE output mode.\n"
         "  -h   HELP output for loaded modules.\n"
         "\n"

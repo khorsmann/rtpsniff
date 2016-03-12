@@ -28,7 +28,7 @@ with RTPSniff.  If not, see <http://www.gnu.org/licenses/>.
 
 /* Settings */
 #ifndef INTERVAL_SECONDS
-#   define INTERVAL_SECONDS 10 /* wake the storage engine every N seconds */
+#   define INTERVAL_SECONDS timer_interval /* wake the storage engine every N seconds */
 #endif /* INTERVAL_SECONDS */
 
 #define TIMER__METHOD_NSLEEP 1
