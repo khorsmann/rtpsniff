@@ -17,12 +17,23 @@ since it prints a status update every N seconds.)
 ### USAGE
 ##### Syntax:
 ```
-  rtpsniff {interface} {buffer_size} '{bpf_filter}'
+rtpsniff {arguments}
+
+Arguments:
+
+  -b   MAX_KPPS is the amount of Kpackets per second you expect. if you
+       go too low, the buffers won't be sufficient.
+  -i   IFACE is the interface to sniff on.
+  -f   PCAP_FILTER is the common BPF filter.
+  -v   VERBOSE output mode.
+  -v   HELP output for loaded modules.
+
 ```
 
 ##### Example: 
 ```
-  rtpsniff eth0 100 'udp and portrange 10000-30000'
+  rtpsniff -i eth0 -b 100 -f 'udp and portrange 10000-30000'
+
 ```
 
 
