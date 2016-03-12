@@ -26,7 +26,7 @@ Arguments:
   -i   IFACE is the interface to sniff on.
   -f   PCAP_FILTER is the common BPF filter.
   -v   VERBOSE output mode.
-  -v   HELP output for loaded modules.
+  -h   HELP output for loaded modules.
 
 ```
 
