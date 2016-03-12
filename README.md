@@ -25,6 +25,7 @@ Arguments:
        go too low, the buffers won't be sufficient.
   -i   IFACE is the interface to sniff on.
   -f   PCAP_FILTER is the common BPF filter.
+  -t   TIMER output interval in seconds.
   -v   VERBOSE output mode.
   -h   HELP output for loaded modules.
 
@@ -32,7 +33,7 @@ Arguments:
 
 ##### Example: 
 ```
-  rtpsniff -i eth0 -b 100 -f 'udp and portrange 10000-30000'
+  rtpsniff -i eth0 -b 100 -f 'udp and portrange 10000-30000' -t 30
 
 ```
 
