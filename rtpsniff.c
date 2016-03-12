@@ -45,7 +45,7 @@ int main(int argc, char const *const *argv) {
     int i;
     int buffer = 100;
     char * dev = "eth0";
-    char * bpf = "udp and portrange 7000-10000";
+    char * bpf = "udp and portrange 10000-30000";
 
     for(i = 1; i < argc; ++i) {
       if (strcmp(argv[i], "-f") == 0 || 
@@ -146,15 +146,16 @@ void rtpsniff_help() {
         "  rtpsniff {args}\n"
         "\n"
         "Arguments:\n"
-        "  -b   MAX_KPPS is the amount of Kpackets per second you expect. if you\n"
-        "       go too low, the buffers won't be sufficient.\n"
+
         "  -i   IFACE is the interface to sniff on.\n"
         "  -f   PCAP_FILTER is the common BPF filter.\n"
+        "  -b   MAX_KPPS is the amount of Kpackets per second you expect. if you\n"
+        "       go too low, the buffers won't be sufficient.\n"
         "  -v   VERBOSE output mode.\n"
-        "  -v   HELP output for loaded modules.\n"
+        "  -h   HELP output for loaded modules.\n"
         "\n"
         "Example:\n"
-        "  rtpsniff -i eth0 -b 100 -f 'udp and not port 53'\n"
+        "  rtpsniff -i eth0 -b 100 -f 'udp and portrange 10000-30000'\n"
         "\n"
     );
 }
