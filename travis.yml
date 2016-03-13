@@ -1,0 +1,15 @@
+language: c
+
+compiler:
+  - gcc
+
+install: 
+  - sudo apt-get update || true
+  - sudo apt-get install build-essential
+  - sudo apt-get install libpcap-dev libjson0-dev
+
+script:
+  - make MOD_OUT=out_console
+  - make MOD_OUT=out_syslog
+  - make MOD_OUT=out_json
+  - ./bin/rtpsniff -h
