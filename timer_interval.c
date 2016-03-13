@@ -110,9 +110,9 @@ int timer_loop_bg(struct memory_t *memory) {
         perror("pthread_create");
         return -1;
     }
-#ifndef NDEBUG
-    fprintf(stderr, "timer_loop_bg: Thread %p started.\n", (void*)timer__thread);
-#endif
+	if (debug) {
+	    fprintf(stderr, "timer_loop_bg: Thread %p started.\n", (void*)timer__thread);
+	}
     return 0;
 }
 
@@ -129,9 +129,9 @@ void timer_loop_stop() {
     /* Get its exit status */
     if (pthread_join(timer__thread, &ret) != 0)
         perror("pthread_join");
-#ifndef NDEBUG
-    fprintf(stderr, "timer_loop_stop: Thread %p joined.\n", (void*)timer__thread);
-#endif
+	if (debug) {
+	    fprintf(stderr, "timer_loop_stop: Thread %p joined.\n", (void*)timer__thread);
+	}
 
 #if TIMER__METHOD == TIMER__METHOD_SEMAPHORE
     /* Destroy semaphore */
@@ -144,9 +144,9 @@ void timer_loop_stop() {
 static void *timer__run(void *thread_arg) {
     int first_run_skipped = 0; /* do not store the first run because the interval is wrong */
 
-#ifndef NDEBUG
-    fprintf(stderr, "timer__run: Thread started.\n");
-#endif
+	if (debug) {
+	    fprintf(stderr, "timer__run: Thread started.\n");
+	}
 
     while (1) {
         struct timeval current_time; /* current time is in UTC */
@@ -173,7 +173,7 @@ static void *timer__run(void *thread_arg) {
         sleep_useconds = (1000000 *
                           (INTERVAL_SECONDS - (current_time.tv_sec % INTERVAL_SECONDS)) -
                           current_time.tv_usec);
-#   ifndef NDEBUG
+if (debug) {
         fprintf(stderr, "timer__run: Current time is %i (%02i:%02i:%02i.%06i), "
                         "sleep planned for %i useconds.\n",
                 (int)current_time.tv_sec,
@@ -181,11 +181,12 @@ static void *timer__run(void *thread_arg) {
                 (int)(current_time.tv_sec / 60) % 60,
                 (int)current_time.tv_sec % 60,
                 (int)current_time.tv_usec, sleep_useconds);
-#   endif /* NDEBUG */
+} /* NDEBUG */
+
 #elif TIMER__METHOD == TIMER__METHOD_SEMAPHORE
         new_time.tv_sec = sample_begin_time + INTERVAL_SECONDS;
         new_time.tv_nsec = 0;
-#   ifndef NDEBUG
+	if (debug) {
         fprintf(stderr, "timer__run: Current time is %i (%02i:%02i:%02i.%06i), "
                         "sleep planned until %02i:%02i:%02i.\n",
                 (int)current_time.tv_sec,
@@ -196,7 +197,7 @@ static void *timer__run(void *thread_arg) {
                 (int)(new_time.tv_sec / 3600) % 24,
                 (int)(new_time.tv_sec / 60) % 60,
                 (int)new_time.tv_sec % 60);
-#   endif /* NDEBUG */
+	} /* NDEBUG */
 #endif /* TIMER__METHOD == TIMER__METHOD_SEMAPHORE */
 
 #if TIMER__METHOD == TIMER__METHOD_NSLEEP
@@ -222,18 +223,18 @@ static void *timer__run(void *thread_arg) {
             perror("sem_timedwait");
 #endif /* TIMER__METHOD == TIMER__METHOD_SEMAPHORE */
 
-#ifndef NDEBUG
-        if (gettimeofday(&current_time, NULL) != 0) {
-            perror("gettimeofday");
-            return (void*)-1;
-        }
-        fprintf(stderr, "timer__run: Awake! Time is now %i (%02i:%02i:%02i.%06i).\n",
-                (int)current_time.tv_sec,
-                (int)(current_time.tv_sec / 3600) % 24,
-                (int)(current_time.tv_sec / 60) % 60,
-                (int)current_time.tv_sec % 60,
-                (int)current_time.tv_usec);
-#endif
+	if (debug) {
+	        if (gettimeofday(&current_time, NULL) != 0) {
+	            perror("gettimeofday");
+	            return (void*)-1;
+	        }
+	        fprintf(stderr, "timer__run: Awake! Time is now %i (%02i:%02i:%02i.%06i).\n",
+	                (int)current_time.tv_sec,
+	                (int)(current_time.tv_sec / 3600) % 24,
+	                (int)(current_time.tv_sec / 60) % 60,
+	                (int)current_time.tv_sec % 60,
+	                (int)current_time.tv_usec);
+	}
 
         /* Poke other thread to switch memory */
         previously_active = timer__memory->active;
@@ -255,8 +256,8 @@ static void *timer__run(void *thread_arg) {
         sniff_release(&timer__memory->rtphash[previously_active]);
     }
 
-#ifndef NDEBUG
-    fprintf(stderr, "timer__run: Thread done.\n");
-#endif
+	if (debug) {
+	    fprintf(stderr, "timer__run: Thread done.\n");
+	}
     return 0;
 }

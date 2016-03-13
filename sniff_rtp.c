@@ -464,17 +464,17 @@ void sniff_loop(pcap_t *handle, struct memory_t *memory) {
     util_signal_set(SIGQUIT, sniff__loop_done);
     util_signal_set(SIGTERM, sniff__loop_done);
 
-#ifndef NDEBUG
+if (debug) {
     fprintf(stderr, "sniff_loop: Starting loop (mem %p/%p/%i).\n",
             memory->rtphash[0], memory->rtphash[1], memory->active);
-#endif
+}
 
     /* This uses the fast PACKET_RX_RING if available. */
     pcap_loop(handle, 0, sniff_got_packet, NULL);
 
-#ifndef NDEBUG
+if (debug) {
     fprintf(stderr, "sniff_loop: Ended loop at user/system request.\n");
-#endif
+}
 
     if (pcap_stats(handle, &stat) < 0) {
             fprintf(stderr, "pcap_stats: %s\n", pcap_geterr(handle));
@@ -499,11 +499,12 @@ void sniff_loop(pcap_t *handle, struct memory_t *memory) {
 static void sniff__switch_memory(int signum) {
     int recently_active = sniff__memory->active;
     sniff__memory->active = !recently_active;
-#ifndef NDEBUG
-    fprintf(stderr, "sniff__switch_memory: Switched from memory %d (%p) to %d (%p).\n",
-            recently_active, sniff__memory->rtphash[recently_active],
-            !recently_active, sniff__memory->rtphash[!recently_active]);
-#endif
+
+	if (debug) {
+	    fprintf(stderr, "sniff__switch_memory: Switched from memory %d (%p) to %d (%p).\n",
+	            recently_active, sniff__memory->rtphash[recently_active],
+	            !recently_active, sniff__memory->rtphash[!recently_active]);
+	}
 }
 
 static void sniff__loop_done(int signum) {

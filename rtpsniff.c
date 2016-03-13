@@ -26,6 +26,11 @@ with RTPSniff.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 
 int timer_interval = 10;
+int debug;
+
+#ifndef NDEBUG
+debug = 1;
+#endif
 
 static void exit_error(const char* errbuf) {
     fprintf(stderr, "RTPSniff: Initialization failed or bad command line "
@@ -88,6 +93,7 @@ int main(int argc, char const *const *argv) {
       }
       else if (strcmp(argv[i], "-v") == 0 ||
                strcmp(argv[i], "--verbose") == 0) {
+	 debug=1;
          fprintf(stderr, "RTPSniff: Initialization [device: %s] [bpf: '%s'] [ring buffer: %dk pps] [interval: %ds] \n", dev, bpf, buffer, timer_interval);
 
       }
@@ -101,7 +107,6 @@ int main(int argc, char const *const *argv) {
 
       }
     }
-
 
     /* Try initialization */
     errbuf[0] = '\0';
@@ -128,11 +133,12 @@ int main(int argc, char const *const *argv) {
     }
 
 
-#ifndef NDEBUG
+if (debug){
     fprintf(stderr, "rtpsniff: Initialized a packet ring buffer of %d KB, "
                     "should safely handle more than %d thousand packets per second.\n",
             bufsize / 1024, atoi(argv[2]));
-#endif
+}
+
 
     /* Initialize updater thread */
     timer_loop_bg(&memory);
