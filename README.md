@@ -1,10 +1,9 @@
-RTPSniff
+RTPSniff 
 ========
 
-RTPSniff is a tool to sniff RTP traffic and show stats about it.
+![](https://travis-ci.org/lmangani/rtpsniff.svg?branch=master)
 
-(I'm considering renaming `rtpsniff` to `rtpstat` -- like `vmstat` --
-since it prints a status update every N seconds.)
+RTPSniff is a tool to sniff RTP traffic and show stats about it.
 
 ### Build
 Choose an output module and build rtpsniff using make:
