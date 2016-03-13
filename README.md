@@ -1,5 +1,7 @@
-RTPSniff 
+RTPSniff
 ========
+
+<img src="http://i.imgur.com/YZUQwju.png" width=100 />
 
 ![](https://travis-ci.org/lmangani/rtpsniff.svg?branch=master)
 
