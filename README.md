@@ -7,6 +7,7 @@ RTPSniff is a tool to sniff RTP traffic and show stats about it.
 since it prints a status update every N seconds.)
 
 ### Build
+Choose an output module and build rtpsniff using make:
 ```
   make MOD_OUT=out_console  # for console output
   make MOD_OUT=out_syslog   # for syslog output
