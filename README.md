@@ -31,12 +31,17 @@ Arguments:
 
 ```
 
-##### Example: 
+##### Examples:
+Capture RTP/RTCP in portrange:
 ```
   rtpsniff -i eth0 -b 100 -f 'udp and portrange 10000-30000' -t 30
 
 ```
 
+Capture RTP on even-ports only:
+```
+  rtpsniff -i eth0 -b 100 -f 'udp and not port 53 and (udp[1] & 1 = 0) and (udp[3] & 1 = 0)' -t 30
+```
 
 
 TODO
@@ -52,18 +57,6 @@ TODO
   is recent enough to consider this value.
 
 * Allow output of either all streams or only those "with issues".
-
-* Change the interface:
-  * `rtpsniff 10` should show the summary every 10 seconds, like
-    `vmstat`.
-  * `-v` should make things verbose.
-  * `-i` for the interface (take eth0 by default).
-  * `-B` for buffer size? or `-P` for packets per second?
-  * `-b` for bpf filter? or `-p` for pcap-style filter?
-    and default to udp and not 53? add example for filtering even
-    ports only?
-    `udp and not port 53 and (udp[1] & 1 = 0) and (udp[3] & 1 = 0)`
-  * Take into account that we may want to dump the contents.
 
 * Decide the best form of output. Allow sequence reordering as long as
   it's within reasonable limits.
