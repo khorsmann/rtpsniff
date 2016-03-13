@@ -21,12 +21,12 @@ rtpsniff {arguments}
 
 Arguments:
 
-  -b   MAX_KPPS is the amount of Kpackets per second you expect. if you
-       go too low, the buffers won't be sufficient.
   -i   IFACE is the interface to sniff on.
   -f   PCAP_FILTER is the common BPF filter.
+  -b   MAX_KPPS is the amount of Kpackets per second you expect. if you
+       go too low, the buffers won't be sufficient.
   -t   TIMER output interval in seconds.
-  -v   VERBOSE output mode.
+  -v   VERBOSE debug output mode (stderr).
   -h   HELP output for loaded modules.
 
 ```
@@ -43,7 +43,7 @@ TODO
 ----
 
 * Add example zabbix template.
-
+* 
 * Add logging to `/var/run` instead of syslog. That helps zabbix.
   (Don't forget to include options to set the user and the file permissions.)
 
