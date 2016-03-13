@@ -139,8 +139,8 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         json_object *jjumps 	= json_object_new_int(rtpstat->jumps);
 
         json_object *jooo 	= json_object_new_int(rtpstat->out_of_order);
-        json_object *jdmin 	= json_object_new_int64(rtpstat->min_diff_usec);
-        json_object *jdmax 	= json_object_new_int64(rtpstat->max_diff_usec);
+        json_object *jdmin 	= json_object_new_int(rtpstat->min_diff_usec);
+        json_object *jdmax 	= json_object_new_int(rtpstat->max_diff_usec);
 
 	json_object_object_add(jobj,"timestamp", jtimestamp);
         json_object_object_add(jobj,"ssrc", jssrc);
@@ -158,7 +158,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"delay_min", jdmin);
 	json_object_object_add(jobj,"delay_max", jdmax);
 
-         json_object *jjitter 	= json_object_new_int64(rtpstat->jitter);
+         json_object *jjitter 	= json_object_new_int(rtpstat->jitter);
 	 json_object_object_add(jobj,"jitter", jjitter);
 
          json_object *jmos 	= json_object_new_int(mos*100);
@@ -186,9 +186,9 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
         json_object *jlatep = json_object_new_int((100.0 * late / packets)*100);
 
         json_object *jooo 	= json_object_new_int(ooo);
-        json_object *jdmin 	= json_object_new_int64(dmin);
-        json_object *jdmax 	= json_object_new_int64(dmax);
-        json_object *jdavg 	= json_object_new_int64(davg);
+        json_object *jdmin 	= json_object_new_int(dmin);
+        json_object *jdmax 	= json_object_new_int(dmax);
+        json_object *jdavg 	= json_object_new_int(davg);
 
 	json_object_object_add(jobj,"timestamp", jtimestamp);
         json_object_object_add(jobj,"interval", jinterval);
@@ -204,7 +204,7 @@ void out_write(uint32_t unixtime_begin, uint32_t interval, struct rtpstat_t *mem
 	json_object_object_add(jobj,"delay_max", jdmax);
 	json_object_object_add(jobj,"delay_avg", jdavg);
 
-         json_object *jjitter 	= json_object_new_int64(jitter);
+         json_object *jjitter 	= json_object_new_int(jitter);
 	 json_object_object_add(jobj,"jitter", jjitter);
 
          json_object *jmos 	= json_object_new_int(mos*100);
