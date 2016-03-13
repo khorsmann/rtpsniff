@@ -43,7 +43,7 @@ TODO
 ----
 
 * Add example zabbix template.
-* 
+
 * Add logging to `/var/run` instead of syslog. That helps zabbix.
   (Don't forget to include options to set the user and the file permissions.)
 
