@@ -54,7 +54,7 @@ rm -rf %{buildroot}
 %doc
 
 %changelog
-* Mon Jan 09 2017 Karsten Horsmann <khorsmann@gmail.com> - 1.0.0-2
+* Mon Jan 09 2017 Karsten Horsmann <khorsmann@gmail.com> - 1.0.0-3
 - ldconfig with /usr/local/lib path in post/un rpm run
 * Fri Jan 06 2017 Karsten Horsmann <khorsmann@gmail.com> - 1.0.0-2
 - added initscript and logrotate
